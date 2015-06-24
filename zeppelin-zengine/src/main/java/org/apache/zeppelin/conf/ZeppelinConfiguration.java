@@ -398,6 +398,7 @@ public class ZeppelinConfiguration extends XMLConfiguration {
         + "org.apache.zeppelin.hive.HiveInterpreter,"
         + "org.apache.zeppelin.tajo.TajoInterpreter,"
         + "org.apache.zeppelin.flink.FlinkInterpreter,"
+        + "org.apache.zeppelin.flink.PyFlinkInterpreter,"
         + "org.apache.zeppelin.ignite.IgniteInterpreter,"
         + "org.apache.zeppelin.ignite.IgniteSqlInterpreter"),
     ZEPPELIN_INTERPRETER_DIR("zeppelin.interpreter.dir", "interpreter"),

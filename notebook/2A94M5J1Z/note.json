@@ -103,7 +103,7 @@
       "config": {
         "colWidth": 4.0,
         "graph": {
-          "mode": "multiBarChart",
+          "mode": "lineChart",
           "height": 300.0,
           "optionOpen": false,
           "keys": [
@@ -333,6 +333,7 @@
   ],
   "name": "Zeppelin Tutorial",
   "id": "2A94M5J1Z",
+  "angularObjects": {},
   "config": {
     "looknfeel": "default"
   },

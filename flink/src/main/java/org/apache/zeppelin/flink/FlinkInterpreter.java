@@ -58,6 +58,7 @@ public class FlinkInterpreter extends Interpreter {
   private ExecutionEnvironment env;
   private Configuration flinkConf;
   private LocalFlinkMiniCluster localFlinkCluster;
+  private FlinkZeppelinContext z;
 
   public FlinkInterpreter(Properties property) {
     super(property);
@@ -112,6 +113,8 @@ public class FlinkInterpreter extends Interpreter {
     out = new ByteArrayOutputStream();
     imain = new FlinkIMain(settings, new PrintWriter(out));
 
+    z = new FlinkZeppelinContext();
+
     initializeFlinkEnv();
   }
 
@@ -154,11 +157,14 @@ public class FlinkInterpreter extends Interpreter {
 
     env = new FlinkEnvironment(getRpcAddress(), getRpcPort(), imain);
     binder.put("env", new org.apache.flink.api.scala.ExecutionEnvironment(env));
+    binder.put("z", z);
 
     // do import and create val
     imain.interpret("@transient val env = "
         + "_binder.get(\"env\")"
         + ".asInstanceOf[org.apache.flink.api.scala.ExecutionEnvironment]");
+    imain.interpret("@transient val z = " +
+            "_binder.get(\"z\").asInstanceOf[org.apache.zeppelin.flink.FlinkZeppelinContext]");
 
     imain.interpret("import org.apache.flink.api.scala._");
   }
@@ -224,6 +230,8 @@ public class FlinkInterpreter extends Interpreter {
   }
 
   public InterpreterResult interpret(String[] lines, InterpreterContext context) {
+    z.setGui(context.getGui());
+
     String[] linesToRun = new String[lines.length + 1];
     for (int i = 0; i < lines.length; i++) {
       linesToRun[i] = lines[i];
@@ -272,7 +280,9 @@ public class FlinkInterpreter extends Interpreter {
     }
   }
 
-
+  String getJobGroup(InterpreterContext context){
+    return "zeppelin-" + context.getParagraphId();
+  }
 
   @Override
   public void cancel(InterpreterContext context) {
@@ -293,6 +303,10 @@ public class FlinkInterpreter extends Interpreter {
     return new LinkedList<String>();
   }
 
+  public FlinkZeppelinContext getZeppelinContext() {
+    return z;
+  }
+
   private void startFlinkMiniCluster() {
     localFlinkCluster = new LocalFlinkMiniCluster(flinkConf, false);
     localFlinkCluster.waitForTaskManagersToBeRegistered();
@@ -303,6 +317,27 @@ public class FlinkInterpreter extends Interpreter {
       localFlinkCluster.shutdown();
       localFlinkCluster = null;
     }
+  }
+
+  public static String getSystemDefault(
+          String envName,
+          String propertyName,
+          String defaultValue) {
+
+    if (envName != null && !envName.isEmpty()) {
+      String envValue = System.getenv().get(envName);
+      if (envValue != null) {
+        return envValue;
+      }
+    }
+
+    if (propertyName != null && !propertyName.isEmpty()) {
+      String propValue = System.getProperty(propertyName);
+      if (propValue != null) {
+        return propValue;
+      }
+    }
+    return defaultValue;
   }
 
   static final String toString(Object o) {
