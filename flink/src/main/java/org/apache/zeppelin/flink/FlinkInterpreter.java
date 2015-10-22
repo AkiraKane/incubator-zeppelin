@@ -328,8 +328,9 @@ public class FlinkInterpreter extends Interpreter {
 
   private void startFlinkMiniCluster() {
     localFlinkCluster = new LocalFlinkMiniCluster(flinkConf, false);
+
     try {
-      localFlinkCluster.waitForTaskManagersToBeRegistered();
+      localFlinkCluster.start(true);
     } catch (Exception e){
       throw new RuntimeException("Could not start Flink mini cluster.", e);
     }
